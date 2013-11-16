@@ -6,7 +6,6 @@ from PyQt4.QtGui import *
 
 
 class Cell(QWidget):
-    change_signal = pyqtSignal()
     live, dead = range(2)
     dead_color = QColor(Qt.gray)
     live_color = QColor(Qt.darkGreen)
@@ -21,7 +20,6 @@ class Cell(QWidget):
         self.color = Cell.status_color[status]
         self.neighbor = [None] * 4
 
-        self.change_signal.connect(self.repaint)
         self.resize(size, size)
 
     def do_draw(self, painter, color):
@@ -65,4 +63,4 @@ class Cell(QWidget):
 
     def mousePressEvent(self, event):
         self.reverse()
-        self.change_signal.emit()
+        self.repaint()

@@ -43,3 +43,9 @@ class Field(QWidget):
                 layout.addWidget(cell, row_index, col_index)
 
         self.setLayout(layout)
+
+    def scan_cell(self):
+        for row_index in xrange(0, self.row):
+            for col_index in xrange(0, self.col):
+                self.cell_matrix[row_index][col_index].reverse()
+                self.cell_matrix[row_index][col_index].repaint()

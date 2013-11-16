@@ -5,15 +5,20 @@ from field import *
 
 
 class MainWindow(QWidget):
+    timer_interval = 1000
+
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.world_timer = QTimer()
+        self.world_timer.timeout.connect(self.new_round)
+        self.world_timer.start(self.timer_interval)
+        self.field = Field()
         self.init_ui()
 
     def init_ui(self):
         top_layout = QHBoxLayout()
 
-        field = Field()
-        top_layout.addWidget(field)
+        top_layout.addWidget(self.field)
 
         play_btn = QPushButton("Play", self)
         stop_btn = QPushButton("Stop", self)
@@ -31,7 +36,7 @@ class MainWindow(QWidget):
 
         self.setWindowTitle("Draw")
 
-        self.resize(field.size().width(), field.size().height())
+        self.resize(self.field.size().width(), self.field.size().height())
         self.center()
 
         self.show()
@@ -40,11 +45,6 @@ class MainWindow(QWidget):
         screen = QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width() - size.width())/2, (screen.height() - size.height())/2)
-
-    #def paintEvent(self, event):
-    #    self.painter.begin(self)
-    #    self.draw_cell()
-    #    self.painter.end()
 
     def place_cell(self, layout, field_row, field_col, cell_size, painter):
         index = 0
@@ -64,10 +64,8 @@ class MainWindow(QWidget):
                 layout.addWidget(cell, row, col)
                 self.cell[row][col] = cell
 
-    #def draw_cell(self):
-    #    for col in xrange(self.col):
-    #        for row in xrange(self.row):
-    #            self.cell[row][col].draw()
+    def new_round(self):
+        self.field.scan_cell()
 
 
 def main():
