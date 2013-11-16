@@ -9,17 +9,17 @@ class Cell(QWidget):
     change_signal = pyqtSignal()
     live, dead = range(2)
     dead_color = QColor(Qt.gray)
-    live_color = QColor(Qt.green)
+    live_color = QColor(Qt.darkGreen)
     status_color = {live: live_color, dead: dead_color}
+    top, bottom, left, right = range(4)
 
-    def __init__(self, index, size=10, status=live):
+    def __init__(self, size=10, status=live):
         super(Cell, self).__init__()
-        self.index = index
         self.cell_size = size
 
         self.status = status
-        self.color = self.status_color[status]
-        self.left = self.right = self.top = self.bottom = 0
+        self.color = Cell.status_color[status]
+        self.neighbor = [None] * 4
 
         self.change_signal.connect(self.repaint)
         self.resize(size, size)
@@ -46,10 +46,16 @@ class Cell(QWidget):
 
     def setstatus(self, status):
         self.status = status
-        self.color = self.status_color[self.status]
+        self.color = Cell.status_color[self.status]
 
     def getstatus(self):
         return self.status
+
+    def setneighbor(self, direction, neighbor):
+        self.neighbor[direction] = neighbor
+
+    def getneighbor(self, direction):
+        return self.neighbor[direction]
 
     def paintEvent(self, event):
         painter = QPainter()
