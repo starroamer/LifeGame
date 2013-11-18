@@ -73,8 +73,17 @@ class Cell(QWidget):
     def get_status(self):
         return self.current_status
 
+    def get_next_status(self):
+        return self.next_status
+
     def set_next_status(self, status):
         self.next_status = status
+
+    def get_change_status(self):
+        return self.change_status
+
+    def set_change_status(self, change):
+        self.change_status = change
 
     def set_neighbor(self, direction, neighbor):
         self.neighbor[direction] = neighbor

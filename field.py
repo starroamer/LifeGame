@@ -5,9 +5,9 @@ from cell import *
 
 
 class Field(QWidget):
-    random_live_prob = 0.15
+    random_live_prob = 0.0
 
-    def __init__(self, row=20, col=20, cell_size=20, cell_margin=1):
+    def __init__(self, row=20, col=20, cell_size=30, cell_margin=1):
         super(Field, self).__init__()
         self.row = row
         self.col = col
@@ -123,3 +123,19 @@ class Field(QWidget):
             self.next_change_cell.append(cell)
         else:
             cell.stay_next_status()
+
+    def clear_field(self):
+        repaint_flag = False
+        for row_index in xrange(self.row):
+            for col_index in xrange(self.col):
+                cur_cell = self.cell_matrix[row_index][col_index]
+                if cur_cell.get_status() == Cell.live:
+                    repaint_flag = True
+
+                cur_cell.set_status(Cell.dead)
+                cur_cell.set_next_status(Cell.dead)
+                cur_cell.set_change_status(False)
+
+                if repaint_flag:
+                    cur_cell.repaint()
+        del self.next_change_cell[:]

@@ -27,12 +27,15 @@ class MainWindow(QWidget):
         acc_btn.clicked.connect(self.accelerate)
         deacc_btn = QPushButton(u"减速", self)
         deacc_btn.clicked.connect(self.deaccelerate)
+        clear_btn = QPushButton(u"清空", self)
+        clear_btn.clicked.connect(self.clear_field)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
         bottom_layout.addWidget(deacc_btn)
         bottom_layout.addWidget(self.play_btn)
         bottom_layout.addWidget(acc_btn)
+        bottom_layout.addWidget(clear_btn)
         bottom_layout.addStretch()
 
         main_layout = QVBoxLayout()
@@ -70,6 +73,12 @@ class MainWindow(QWidget):
     def deaccelerate(self):
         self.timer_interval *= 2.0
         self.world_timer.start(self.timer_interval)
+
+    def clear_field(self):
+        self.field.clear_field()
+        self.world_timer.stop()
+        self.play_btn.setText(u"开始")
+        self.play_btn.repaint()
 
     def new_round(self):
         #self.field.reverse_all_cell()
