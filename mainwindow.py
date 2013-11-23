@@ -29,6 +29,8 @@ class MainWindow(QWidget):
         deacc_btn.clicked.connect(self.deaccelerate)
         clear_btn = QPushButton(u"清空", self)
         clear_btn.clicked.connect(self.clear_field)
+        random_btn = QPushButton(u"随机分布细胞", self)
+        random_btn.clicked.connect(self.random_gen_cell)
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addStretch()
@@ -36,6 +38,7 @@ class MainWindow(QWidget):
         bottom_layout.addWidget(self.play_btn)
         bottom_layout.addWidget(acc_btn)
         bottom_layout.addWidget(clear_btn)
+        bottom_layout.addWidget(random_btn)
         bottom_layout.addStretch()
 
         main_layout = QVBoxLayout()
@@ -79,6 +82,9 @@ class MainWindow(QWidget):
         self.world_timer.stop()
         self.play_btn.setText(u"开始")
         self.play_btn.repaint()
+
+    def random_gen_cell(self):
+        self.field.random_gen_cell()
 
     def new_round(self):
         #self.field.reverse_all_cell()

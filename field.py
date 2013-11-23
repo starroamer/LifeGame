@@ -5,9 +5,9 @@ from cell import *
 
 
 class Field(QWidget):
-    random_live_prob = 0.0
+    random_live_prob = 0.3
 
-    def __init__(self, row=20, col=20, cell_size=30, cell_margin=1):
+    def __init__(self, row=20, col=20, cell_size=20, cell_margin=1):
         super(Field, self).__init__()
         self.row = row
         self.col = col
@@ -17,7 +17,13 @@ class Field(QWidget):
         self.cell_reproduce_factor = 3
         self.cell_under_population_threshold = 2
         self.cell_overcrowding_threshold = 3
-        self.next_change_cell = []
+
+        #cells which status will be changed
+        self.status_change_cell = []
+
+        #cells which status may be changed and need to be calculated
+        #include live cell and it's neighbors
+        self.consider_cell = {}
 
         self.place_cell()
 
@@ -58,11 +64,11 @@ class Field(QWidget):
         layout.setSpacing(self.cell_margin)
         for row_index in xrange(0, self.row):
             for col_index in xrange(0, self.col):
-                if random.random() < Field.random_live_prob:
-                    status = Cell.live
-                else:
-                    status = Cell.dead
-                cell = Cell(self.cell_size, status,
+                #if random.random() < Field.random_live_prob:
+                #    status = Cell.live
+                #else:
+                #    status = Cell.dead
+                cell = Cell(self, self.cell_size, Cell.dead,
                             self.cell_reproduce_factor,
                             self.cell_under_population_threshold,
                             self.cell_overcrowding_threshold)
@@ -70,8 +76,6 @@ class Field(QWidget):
                 self.set_cell_neighbor(cell, row_index, col_index)
                 self.cell_matrix[row_index][col_index] = cell
                 layout.addWidget(cell, row_index, col_index)
-
-        #self.print_all_cell_neighbor()
 
         self.setLayout(layout)
 
@@ -82,47 +86,40 @@ class Field(QWidget):
                 cur_cell.reverse()
                 cur_cell.repaint()
 
-    def execute_last_iteration_change(self):
-        for cell in self.next_change_cell:
-            cell.reverse()
-            cell.repaint()
-        del self.next_change_cell[:]
+    def execute_change(self):
+        if self.status_change_cell:
+            for cell in self.status_change_cell:
+                cell.reverse()
+                cell.repaint()
+            del self.status_change_cell[:]
 
     def start_next_iteration(self):
-        self.execute_last_iteration_change()
         self.scan_cell_for_next_iteration()
+        self.execute_change()
 
     def scan_cell_for_next_iteration(self):
-        for row_index in xrange(0, self.row):
-            for col_index in xrange(0, self.col):
-                cur_cell = self.cell_matrix[row_index][col_index]
-                self.calcu_cell_next_status(cur_cell)
+        for cell in self.consider_cell:
+            self.calculate_cell_next_status(cell)
 
-    def calcu_cell_next_status(self, cell):
-        live_neighbor_num = 0
+    def calculate_cell_next_status(self, cell):
         cell_status = cell.get_status()
-        change_next_status = False
-        for neighbor in cell.get_neighbor_list():
-            if neighbor.get_status() == Cell.live:
-                live_neighbor_num += 1
+        change_status = False
+        live_neighbor_num = cell.get_live_neighbor_num()
 
         #cell living strategy
 
-        #in case below, change next status of cell
+        #in case below, change status of cell
         #otherwise, stay next status of cell
         if cell_status == Cell.dead and live_neighbor_num == cell.reproduce_factor:
-            change_next_status = True
+            change_status = True
         elif cell_status == Cell.live:
             if live_neighbor_num < cell.under_population_threshold:
-                change_next_status = True
+                change_status = True
             elif live_neighbor_num > cell.overcrowding_threshold:
-                change_next_status = True
+                change_status = True
 
-        if change_next_status:
-            cell.reverse_next_status()
-            self.next_change_cell.append(cell)
-        else:
-            cell.stay_next_status()
+        if change_status:
+            self.status_change_cell.append(cell)
 
     def clear_field(self):
         repaint_flag = False
@@ -131,11 +128,21 @@ class Field(QWidget):
                 cur_cell = self.cell_matrix[row_index][col_index]
                 if cur_cell.get_status() == Cell.live:
                     repaint_flag = True
-
-                cur_cell.set_status(Cell.dead)
-                cur_cell.set_next_status(Cell.dead)
-                cur_cell.set_change_status(False)
+                    cur_cell.set_status(Cell.dead)
+                cur_cell.clear_live_neighbor_num()
 
                 if repaint_flag:
                     cur_cell.repaint()
-        del self.next_change_cell[:]
+        del self.status_change_cell[:]
+        self.consider_cell.clear()
+
+    def random_gen_cell(self):
+        self.clear_field()
+        cell_num = int(self.row * self.col * self.random_live_prob)
+        print cell_num
+        for i in xrange(cell_num):
+            row_index = random.randint(0, self.row - 1)
+            col_index = random.randint(0, self.col - 1)
+            cell = self.cell_matrix[row_index][col_index]
+            cell.reverse()
+            cell.repaint()

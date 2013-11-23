@@ -23,7 +23,10 @@ class Cell(QWidget):
     directions_name[bottom] = "bottom"
     directions_name[bottom_right] = "bottom_right"
 
-    def __init__(self, size=10, status=live, reproduce_factor=3, under_population_threshold=2, overcrowding_threshold=3):
+    def __init__(self, field, size=10, status=live,
+                 reproduce_factor=3,
+                 under_population_threshold=2,
+                 overcrowding_threshold=3):
         super(Cell, self).__init__()
         self.cell_size = size
 
@@ -36,11 +39,13 @@ class Cell(QWidget):
         #live cell become dead when live neighbor num more than overcrowding_threshold
         self.overcrowding_threshold = overcrowding_threshold
 
+        self.field = field
+
         self.current_status = status
-        self.next_status = status
-        self.change_status = False
         self.color = Cell.status_color[status]
+
         self.neighbor = dict.fromkeys(Cell.directions)
+        self.live_neighbor = 0
 
         self.resize(size, size)
 
@@ -48,20 +53,27 @@ class Cell(QWidget):
         painter.fillRect(0, 0, self.cell_size, self.cell_size, color)
 
     def reverse(self):
+        neighbor_list = self.get_neighbor_list()
         if self.current_status == self.dead:
+            #set cell status to live
             self.set_status(self.live)
+
+            #add live cell and it's neighbors to consider cell list
+            self.field.consider_cell[self] = 1
+            for cell in neighbor_list:
+                cell.add_live_neighbor_num()
+                self.field.consider_cell[cell] = 1
         elif self.current_status == self.live:
+            #set cell status to dead
             self.set_status(self.dead)
 
-    def reverse_next_status(self):
-        if self.current_status == Cell.dead:
-            self.set_next_status(Cell.live)
-        elif self.current_status == Cell.live:
-            self.set_next_status(Cell.dead)
-        self.change_status = True
-
-    def stay_next_status(self):
-        self.change_status = False
+            #if this cell and it's neighbor has no live neighbor, remove it from consider cell list
+            if self.get_live_neighbor_num() == 0:
+                    del self.field.consider_cell[self]
+            for cell in neighbor_list:
+                cell.minus_live_neighbor_num()
+                if cell.get_live_neighbor_num() == 0 and cell.get_status() == Cell.dead:
+                    del self.field.consider_cell[cell]
 
     def draw(self, painter):
         self.do_draw(painter, self.color)
@@ -73,18 +85,6 @@ class Cell(QWidget):
     def get_status(self):
         return self.current_status
 
-    def get_next_status(self):
-        return self.next_status
-
-    def set_next_status(self, status):
-        self.next_status = status
-
-    def get_change_status(self):
-        return self.change_status
-
-    def set_change_status(self, change):
-        self.change_status = change
-
     def set_neighbor(self, direction, neighbor):
         self.neighbor[direction] = neighbor
 
@@ -94,6 +94,20 @@ class Cell(QWidget):
     def get_neighbor_list(self):
         neighbors = [i for i in self.neighbor.values() if i]
         return neighbors
+
+    def add_live_neighbor_num(self):
+        self.live_neighbor += 1
+        #print "%s live neighbor num = %d" % (self.objectName(), self.live_neighbor)
+
+    def minus_live_neighbor_num(self):
+        self.live_neighbor -= 1
+        #print "%s live neighbor num = %d" % (self.objectName(), self.live_neighbor)
+
+    def get_live_neighbor_num(self):
+        return self.live_neighbor
+
+    def clear_live_neighbor_num(self):
+        self.live_neighbor = 0
 
     def paintEvent(self, event):
         painter = QPainter()
